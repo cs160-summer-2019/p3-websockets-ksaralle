@@ -19,6 +19,13 @@
     <canvas id="myCanvas" width="750px" height="750px"></canvas>
 </body>
 <script>
+  
+    
+    /*
+    window.addEventListener(‘deviceorientation’, function(event) {
+       // Device rotation around Y-axis, in degrees
+      console.log(event.gamma + ‘deg’);
+    }); */
 
     // setting up the canvas and one paper tool
   
@@ -42,6 +49,7 @@
     */
     var colorArray = [];
     var clientArray = [];
+    var pathArray = [];
   
     window.onload = function() {
     
@@ -67,6 +75,7 @@
      // drawing
      var mousePath = new paper.Path();
      mousePath.strokeColor = getColor(currentClient);
+     pathArray.push(mousePath);
     
       
       
@@ -97,6 +106,7 @@
               mousePath = new paper.Path();
               mousePath.strokeColor = newColor;
               currentClient = newClient;
+              pathArray.push(mousePath);
             } else {
             // if it is a newly created client
                 //console.log("MIGHT BE WRONG HERE");
@@ -110,6 +120,7 @@
                 mousePath = new paper.Path();
                 mousePath.strokeColor = newColor;
                 currentClient = newClient;
+                pathArray.push(mousePath);
             }
       }
       
@@ -132,19 +143,56 @@
              //console.log(newPoint);
              mousePath.add(newPoint);
 			}
-      
-      
-      
-      
-      
     };
+      
     // handle error  
     socket.onclose = function(e) {
         console.error('Chat socket closed unexpectedly');
     };
     
+    // shake event
+    window.addEventListener('devicemotion', function(event) {
+      if ((event.acceleration.x > 3) || (event.acceleration.y > 3) || (event.acceleration.z > 3)) {
+          console.log("shaking");
+          for (var i = 0; i < pathArray.length; i++) {
+            pathArray[i].remove();
+          }
+          
+           // var context = canvas.getContext('2d');
+           // context.clearRect(0, 0, canvas.width, canvas.height);
+      }
+    }); 
+      
+    
+      
+     // tilting to the right
+    window.addEventListener('deviceorientation', function(event) {
+       // Device rotation around Y-axis, in degrees
+      if (event.gamma > 10) {
+        // console.log(event.gamma + 'color changed');
+        // console.log("previous color: " + mousePath.strokeColor);
+       // tilting to the right
+          var changeColor = getNewRandomColor();
+          var n = clientArray.indexOf(clientID);
+          colorArray[n] = changeColor;
+          mousePath = new paper.Path();
+          mousePath.strokeColor = changeColor;
+          pathArray.push(mousePath);
+          //console.log("new color: " + changeColor);
+      }
+      //console.log(event.gamma + 'deg');
+    });
+    
+      
       
     // ----------------------- helper functions -----------------------
+      
+    // clear canvas
+     function clearCanvas() {
+        var context = canvas.getContext('2d');
+        context.clearRect(0, 0, canvas.width, canvas.height);
+     }
+      
       
     // generate new clientID
       function getNewID() {
@@ -202,5 +250,8 @@
       
     };
   
+    
+  
+     
 </script>
 </html>
