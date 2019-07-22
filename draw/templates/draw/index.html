@@ -21,19 +21,34 @@
 <script>
 
     // setting up the canvas and one paper tool
+  
+  
     var canvas = document.getElementById('myCanvas');
+  
+    
     paper.setup(canvas);
     var tool = new paper.Tool();
 
     // getting the URL (you may want to use for Exercise 3)
     var url = window.location.href;
-  
+    /*
+    if (url.indexOf("small") > -1) {
+      // small display
+				init(false);
+			} else {
+      // large display
+				init(true);
+			}
+    */
     var colorArray = [];
     var clientArray = [];
   
     window.onload = function() {
     
+     // the client in use
      var currentClient;
+     // the client of this window
+     var thisClient;
       
       // websockets connection
     var socket = new WebSocket('wss://p3-websockets-ksaralle-cywang1998559048.codeanyapp.com/ws/draw');
@@ -45,12 +60,10 @@
       clientArray.push(clientID);
       colorArray.push(thisColor);
       
-          
       
      //console.log("clientID: " + clientID);
       
      
-    
      // drawing
      var mousePath = new paper.Path();
      mousePath.strokeColor = getColor(currentClient);
@@ -71,12 +84,12 @@
       var receivedMessage = event.data;
       var array = receivedMessage.split(" ");
       //console.log("received array: " + array);
-      //console.log("array[0]: " + array[0] + " array[1]: " + array[1]);
-     
-      
+      //console.log("array[0]: " + array[0] + " array[1]: " + array[1]); 
       var newClient = array[2];
       var newColor = array[3];
       
+      
+      // make sure the color is right
       if (newClient != currentClient) {
       // if i change a window to draw, either a new client or an existent client
             if (clientArray.includes(newClient)) {
@@ -98,18 +111,31 @@
                 mousePath.strokeColor = newColor;
                 currentClient = newClient;
             }
-  
-        
       }
       
-      
-     
-      
       var coords = [array[0], array[1]];
-      var newPoint = new paper.Point(coords);
       
-      //console.log(newPoint);
-      mousePath.add(newPoint);
+      // draw lines
+      if (url.indexOf("small") > -1) {
+          // small display
+            if (currentClient == clientID) {
+               // shows if draw on this display itself
+               var coords = [array[0], array[1]];
+               var newPoint = new paper.Point(coords);
+               //console.log(newPoint);
+               mousePath.add(newPoint);
+            } 
+			} else {
+            // large display, doesnt change, still shows everything
+             var coords = [array[0], array[1]];
+             var newPoint = new paper.Point(coords);
+             //console.log(newPoint);
+             mousePath.add(newPoint);
+			}
+      
+      
+      
+      
       
     };
     // handle error  
@@ -117,11 +143,6 @@
         console.error('Chat socket closed unexpectedly');
     };
     
-      
-      
-      
-      
-      
       
     // ----------------------- helper functions -----------------------
       
@@ -181,10 +202,5 @@
       
     };
   
-    
-
-    
-
-
 </script>
 </html>
