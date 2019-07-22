@@ -27,9 +27,61 @@
 
     // getting the URL (you may want to use for Exercise 3)
     var url = window.location.href;
+  
+  
+    window.onload = function() {
+      
+      
+     
+      
+    
+    
+     var mousePath = new paper.Path();
+     mousePath.strokeColor = '#f5bcca';
 
-    // var socket = new WebSocket(
-    //     'wss://<your url here>/ws/draw');
+    
+    
+      
+      
+      
+      
+      // websockets construction
+    var socket = new WebSocket('wss://p3-websockets-ksaralle-cywang1998559048.codeanyapp.com/ws/draw');
+     // what message to send
+    tool.onMouseMove = function(event) {
+        var x = event.point.x;
+        var y = event.point.y;
+        var coords = x + " " + y;
+ 
+        // send the message
+        setTimeout(function(){ socket.send(coords); }, 200);
+    }
+     // how to receive
+    socket.onmessage = function(event) {
+      var receivedMessage = event.data;
+      var array = receivedMessage.split(" ");
+      console.log("received array: " + array);
+      console.log("array[0]: " + array[0] + " array[1]: " + array[1]);
+      var x = array[0];
+      var y = array[1];
+      var newPoint = new paper.Point(array);
+      console.log(newPoint);
+      
+  
+      mousePath.add(newPoint);
+      
+    };
+    // handle error  
+    socket.onclose = function(e) {
+        console.error('Chat socket closed unexpectedly');
+    };
+    
+    
+      
+    };
+    
+
+    
 
 
 </script>
