@@ -28,46 +28,87 @@
     // getting the URL (you may want to use for Exercise 3)
     var url = window.location.href;
   
+    var colorArray = [];
+    var clientArray = [];
   
     window.onload = function() {
+    
+     var currentClient;
       
+      // websockets connection
+    var socket = new WebSocket('wss://p3-websockets-ksaralle-cywang1998559048.codeanyapp.com/ws/draw');
+      
+      var clientID = getNewID();
+      currentClient = clientID;
+  
+      var thisColor = getNewRandomColor();
+      clientArray.push(clientID);
+      colorArray.push(thisColor);
+      
+          
+      
+     //console.log("clientID: " + clientID);
       
      
-      
     
-    
+     // drawing
      var mousePath = new paper.Path();
-     mousePath.strokeColor = '#f5bcca';
-
-    
+     mousePath.strokeColor = getColor(currentClient);
     
       
       
-      
-      
-      // websockets construction
-    var socket = new WebSocket('wss://p3-websockets-ksaralle-cywang1998559048.codeanyapp.com/ws/draw');
      // what message to send
     tool.onMouseMove = function(event) {
         var x = event.point.x;
         var y = event.point.y;
-        var coords = x + " " + y;
+        var coords = x + " " + y + " " + clientID + " " + thisColor;
  
         // send the message
-        setTimeout(function(){ socket.send(coords); }, 200);
+        setTimeout(function(){ socket.send(coords); }, 100);
     }
      // how to receive
     socket.onmessage = function(event) {
       var receivedMessage = event.data;
       var array = receivedMessage.split(" ");
-      console.log("received array: " + array);
-      console.log("array[0]: " + array[0] + " array[1]: " + array[1]);
-      var x = array[0];
-      var y = array[1];
-      var newPoint = new paper.Point(array);
-      console.log(newPoint);
+      //console.log("received array: " + array);
+      //console.log("array[0]: " + array[0] + " array[1]: " + array[1]);
+     
       
+      var newClient = array[2];
+      var newColor = array[3];
+      
+      if (newClient != currentClient) {
+      // if i change a window to draw, either a new client or an existent client
+            if (clientArray.includes(newClient)) {
+            // if it is an existent client
+              mousePath = new paper.Path();
+              mousePath.strokeColor = newColor;
+              currentClient = newClient;
+            } else {
+            // if it is a newly created client
+                //console.log("MIGHT BE WRONG HERE");
+                clientArray.push(newClient);
+                colorArray.push(newColor);
+              
+                //console.log(clientArray);
+                //console.log(colorArray);
+               //console.log("adding a new client");
+              
+                mousePath = new paper.Path();
+                mousePath.strokeColor = newColor;
+                currentClient = newClient;
+            }
   
+        
+      }
+      
+      
+     
+      
+      var coords = [array[0], array[1]];
+      var newPoint = new paper.Point(coords);
+      
+      //console.log(newPoint);
       mousePath.add(newPoint);
       
     };
@@ -76,9 +117,70 @@
         console.error('Chat socket closed unexpectedly');
     };
     
-    
+      
+      
+      
+      
+      
+      
+    // ----------------------- helper functions -----------------------
+      
+    // generate new clientID
+      function getNewID() {
+        var id = getRandomId();
+        while (clientArray.includes(id)) {
+            id = getRandomId();
+        }
+        return id;
+      }
+      
+    // generate random clientID
+      function getRandomId() {
+        var letters = '0123456789';
+        var id = '0';
+        for (var i = 0; i < 8; i++) {
+          id += letters[Math.floor(Math.random() * 10)];
+        }
+        return id;
+      }
+      
+    // get the right color
+    // each client has a corresponding color
+     function getColor(client) {
+       if (clientArray.includes(client)) {
+           var n = clientArray.indexOf(client);
+           return colorArray[n];
+       } else {
+           var newColor = getNewRandomColor();
+           clientArray.push(client);
+           colorArray.push(newColor);
+           return newColor;
+           console.log("there should be an error!")
+       }
+     }
+      
+    // get random color
+     function getRandomColor () {
+        var letters = '0123456789ABCDEF';
+        var color = '#';
+        for (var i = 0; i < 6; i++) {
+          color += letters[Math.floor(Math.random() * 16)];
+        }
+        return color;
+     }
+      
+     // get a random color that wasnt used before
+     function getNewRandomColor () {
+       var color = getRandomColor();
+       while (colorArray.includes(color)) {
+              color = getRandomColor();
+       }
+       return color;
+              
+     }
       
     };
+  
     
 
     
